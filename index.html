@@ -4730,45 +4730,55 @@
             return colors[type] || '#6b7280';
         }
 
-        async function loadUpcomingDeadlines() {
-            const today = new Date();
-            const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-            
-            const tasks = await db.collection('tasks')
-                .where('dueDate', '>=', today.toISOString().split('T')[0])
-                .where('dueDate', '<=', nextWeek.toISOString().split('T')[0])
-                .where('status', '!=', 'done')
-                .where('assignee', '==', currentUser.uid)
-                .orderBy('dueDate')
-                .limit(5)
-                .get();
+       async function loadUpcomingDeadlines() {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    try {
+        // Fix: First filter by dueDate range
+        const tasks = await db.collection('tasks')
+            .where('dueDate', '>=', today.toISOString().split('T')[0])
+            .where('dueDate', '<=', nextWeek.toISOString().split('T')[0])
+            .where('assignee', '==', currentUser.uid) // equality filter is fine
+            .orderBy('dueDate')
+            .limit(5)
+            .get();
 
-            const deadlines = document.getElementById('upcomingDeadlines');
-            deadlines.innerHTML = '';
+        const deadlines = document.getElementById('upcomingDeadlines');
+        deadlines.innerHTML = '';
 
-            if (tasks.empty) {
-                deadlines.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check"></i><p>No upcoming deadlines</p></div>';
-                return;
-            }
+        // Then filter by status in memory
+        const filteredTasks = tasks.docs.filter(doc => doc.data().status !== 'done');
 
-            tasks.forEach(doc => {
-                const task = doc.data();
-                const dueDate = new Date(task.dueDate).toLocaleDateString();
-                
-                deadlines.innerHTML += `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--light); border-radius: 10px; margin-bottom: 10px;">
-                        <div>
-                            <strong>${task.title}</strong>
-                            <div style="font-size: 12px; color: var(--gray);">${task.projectName || 'No project'}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 600; color: ${getDueDateColor(task.dueDate)};">${dueDate}</div>
-                            <div style="font-size: 11px; color: var(--gray);">${task.priority || 'Normal'}</div>
-                        </div>
-                    </div>
-                `;
-            });
+        if (filteredTasks.length === 0) {
+            deadlines.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check"></i><p>No upcoming deadlines</p></div>';
+            return;
         }
+
+        filteredTasks.forEach(doc => {
+            const task = doc.data();
+            const dueDate = new Date(task.dueDate).toLocaleDateString();
+            
+            deadlines.innerHTML += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--light); border-radius: 10px; margin-bottom: 10px;">
+                    <div>
+                        <strong>${task.title}</strong>
+                        <div style="font-size: 12px; color: var(--gray);">${task.projectName || 'No project'}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; color: ${getDueDateColor(task.dueDate)};">${dueDate}</div>
+                        <div style="font-size: 11px; color: var(--gray);">${task.priority || 'Normal'}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Error loading upcoming deadlines:', error);
+        const deadlines = document.getElementById('upcomingDeadlines');
+        deadlines.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading deadlines</p></div>';
+    }
+}
 
         function getDueDateColor(dateStr) {
             const today = new Date();
