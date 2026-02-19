@@ -283,3 +283,62 @@ body {
         overflow: visible;
     }
 }
+
+/* Compact mode */
+.compact-mode .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+
+.compact-mode .sidebar .menu-text,
+.compact-mode .sidebar .sidebar-header h3,
+.compact-mode .sidebar .company-info {
+    display: none;
+}
+
+.compact-mode .stat-card {
+    padding: 15px;
+}
+
+.compact-mode .stat-value {
+    font-size: 24px;
+}
+
+.compact-mode .kanban-card {
+    padding: 10px;
+}
+
+.compact-mode .form-group {
+    margin-bottom: 10px;
+}
+
+.compact-mode .btn {
+    padding: 8px 16px;
+}
+
+/* Data theme attributes */
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary: #8b5cf6;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --dark: #f9fafb;
+    --light: #1f2937;
+    --gray: #9ca3af;
+    --border: #374151;
+    background: #111827;
+}
+
+[data-theme="dark"] .permission-card,
+[data-theme="dark"] .kanban-card,
+[data-theme="dark"] .modal-content {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .form-control {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
